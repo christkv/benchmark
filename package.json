@@ -23,9 +23,10 @@
   },
   "homepage": "https://github.com/christkv/benchmark",
   "dependencies": {
-    "fast-stats": "0.0.3",
     "babel-core": "^6.2.1",
-    "babel-polyfill": "^6.2.0"
+    "babel-polyfill": "^6.2.0",
+    "co": "^4.6.0",
+    "fast-stats": "0.0.3"
   },
   "devDependencies": {
     "mocha": "^2.3.4",
