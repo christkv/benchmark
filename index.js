@@ -3,7 +3,7 @@ if(!global.Promise) {
   require('es6-promise').polyfill();
 }
 
-Check if we support es6 generators
+// Check if we support es6 generators
 try {
   eval("(function *(){})");
 
