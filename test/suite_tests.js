@@ -6,6 +6,7 @@ var co = require('co'),
 
 var Benchmark = require('../').Benchmark,
   Suite = require('../').Suite,
+  SimpleReporter = require('../').SimpleReporter,
   Stats = require('../').Stats;
 
 // Polyfill Promise if none exists
@@ -40,6 +41,8 @@ describe('Suite', function() {
     });
 
     it('add a simple suite with a single benchmark and custom per benchmark setup', function(done) {
+      this.timeout(200000);
+
       co(function*() {
         // Createa new suite
         var suite = new Suite('test suite', {
@@ -91,8 +94,58 @@ describe('Suite', function() {
         // Execute the test suite
         yield suite.execute();
 
+        // Assertions
+        assert.equal(1, teardown);
+        assert.equal(1, setup);
+        assert.equal(1, suiteSetup);
+        assert.equal(1, suiteTeardown);
+
         // Done
         done();
+      }).catch(function(e) {
+        console.log(e.stack);
+      });
+    });
+
+    it('perform some simple benchmarks and report on it using the simple reporter', function(done) {
+      this.timeout(200000);
+
+      co(function*() {
+        // Createa new suite
+        var suite = new Suite('test suite', {
+          async: false, cycles: 10, iterations: 1000
+        });
+
+        // Add a new bencmark
+        suite.addTest(
+          new Benchmark('simple sync test 1')
+            .set(function(context) {
+              for(var i = 0; i < 1000; i++) {}
+            })
+        );
+
+        suite.addTest(
+          new Benchmark('simple sync test 2', { async: true })
+            .set(function(context, done) {
+              for(var i = 0; i < 1000; i++) {}
+              done();
+            })
+        );
+
+        // Add a simple reporter
+        suite.addReporter(new SimpleReporter());
+
+        // Counts of executions
+        var setup = 0, teardown = 0;
+        var suiteSetup = 0, suiteTeardown = 0;
+
+        // Execute the test suite
+        yield suite.execute();
+
+        // Done
+        done();
+      }).catch(function(e) {
+        console.log(e.stack);
       });
     });
   });
