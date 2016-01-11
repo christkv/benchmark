@@ -1,6 +1,6 @@
 {
   "name": "betterbenchmarks",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Benchmark library used to write comparison benchmarks",
   "main": "index.js",
   "scripts": {
