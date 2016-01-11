@@ -128,13 +128,15 @@ var Suite = (function (_EventEmitter) {
   }, {
     key: 'setup',
     value: function setup(fn) {
+      var self = this;
+
       this.fn_start_setup = new Promise(function (resolve, reject) {
         co(regeneratorRuntime.mark(function _callee() {
           return regeneratorRuntime.wrap(function _callee$(_context) {
             while (1) {
               switch (_context.prev = _context.next) {
                 case 0:
-                  fn(this.context, function (err) {
+                  fn(self.context, function (err) {
                     if (err) return reject(err);
                     resolve();
                   });
@@ -147,17 +149,21 @@ var Suite = (function (_EventEmitter) {
           }, _callee, this);
         })).catch(reject);
       });
+
+      return self;
     }
   }, {
     key: 'teardown',
     value: function teardown(fn) {
+      var self = this;
+
       this.fn_end_teardown = new Promise(function (resolve, reject) {
         co(regeneratorRuntime.mark(function _callee2() {
           return regeneratorRuntime.wrap(function _callee2$(_context2) {
             while (1) {
               switch (_context2.prev = _context2.next) {
                 case 0:
-                  fn(this.context, function (err) {
+                  fn(self.context, function (err) {
                     if (err) return reject(err);
                     resolve();
                   });
@@ -170,6 +176,8 @@ var Suite = (function (_EventEmitter) {
           }, _callee2, this);
         })).catch(reject);
       });
+
+      return self;
     }
   }, {
     key: 'execute',
@@ -180,13 +188,13 @@ var Suite = (function (_EventEmitter) {
         var self = _this2;
 
         // Ensure no empty items
-        context = context || {};
+        self.context = self.context || {};
 
         // Set up the reporters
         var reporters = self.reporters.length > 0 ? self.reporters : [new SimpleReporter()];
 
         co(regeneratorRuntime.mark(function _callee3() {
-          var i;
+          var i, context;
           return regeneratorRuntime.wrap(function _callee3$(_context3) {
             while (1) {
               switch (_context3.prev = _context3.next) {
@@ -240,47 +248,51 @@ var Suite = (function (_EventEmitter) {
 
                 case 12:
                   if (!(i < self.benchmarks.length)) {
-                    _context3.next = 19;
+                    _context3.next = 20;
                     break;
                   }
 
+                  context = Object.assign({}, self.context);
                   // Reset benchmark
+
                   self.benchmarks[i].reset();
                   // Execute benchmark
-                  _context3.next = 16;
+                  _context3.next = 17;
                   return self.benchmarks[i].execute(context, self.options);
 
-                case 16:
+                case 17:
                   i++;
                   _context3.next = 12;
                   break;
 
-                case 19:
+                case 20:
                   if (!(self.fn_end_teardown.length > 0)) {
-                    _context3.next = 27;
+                    _context3.next = 28;
                     break;
                   }
 
                   i = 0;
 
-                case 21:
+                case 22:
                   if (!(i < self.fn_end_teardown.length)) {
-                    _context3.next = 27;
+                    _context3.next = 28;
                     break;
                   }
 
-                  _context3.next = 24;
+                  _context3.next = 25;
                   return self.fn_end_teardown[i]();
 
-                case 24:
+                case 25:
                   i++;
-                  _context3.next = 21;
+                  _context3.next = 22;
                   break;
 
-                case 27:
+                case 28:
 
                   // Emit setup
                   self.emit('teardown', self);
+
+                  // Tear down any reporters
                   for (i = 0; i < reporters.length; i++) {
                     if (reporters[i].suiteTeardown) reporters[i].suiteTeardown(self);
                   }
@@ -291,7 +303,7 @@ var Suite = (function (_EventEmitter) {
                   // Finish up
                   resolve();
 
-                case 31:
+                case 32:
                 case 'end':
                   return _context3.stop();
               }

@@ -28,8 +28,11 @@ var Benchmark = (function (_EventEmitter) {
 
     // All the functions
     _this.fn = null;
+    _this.fn_custom = null;
     _this.fn_cycle_setup = [];
     _this.fn_cycle_teardown = [];
+    _this.fn_iteration_setup = [];
+    _this.fn_iteration_teardown = [];
     _this.fn_start_setup = [];
     _this.fn_end_teardown = [];
 
@@ -54,23 +57,50 @@ var Benchmark = (function (_EventEmitter) {
       this.currentStats = null;
     }
   }, {
-    key: 'set',
-    value: function set(fn) {
-      var self = this;
-
-      self.fn = function (isAsync) {
+    key: 'custom',
+    value: function custom(fn) {
+      this.fn_custom = function (context, stats, options) {
         return new Promise(function (resolve, reject) {
           co(regeneratorRuntime.mark(function _callee() {
             return regeneratorRuntime.wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
                   case 0:
+                    fn(context, stats, options, function (err) {
+                      if (err) return reject(err);
+                      resolve();
+                    });
+
+                  case 1:
+                  case 'end':
+                    return _context.stop();
+                }
+              }
+            }, _callee, this);
+          })).catch(reject);
+        });
+      };
+
+      return this;
+    }
+  }, {
+    key: 'set',
+    value: function set(fn) {
+      var self = this;
+
+      self.fn = function (isAsync) {
+        return new Promise(function (resolve, reject) {
+          co(regeneratorRuntime.mark(function _callee2() {
+            return regeneratorRuntime.wrap(function _callee2$(_context2) {
+              while (1) {
+                switch (_context2.prev = _context2.next) {
+                  case 0:
                     if (!isAsync) {
-                      _context.next = 2;
+                      _context2.next = 2;
                       break;
                     }
 
-                    return _context.abrupt('return', fn(self.context, function (err) {
+                    return _context2.abrupt('return', fn(self.context, function (err) {
                       if (err) return reject(err);
                       resolve();
                     }));
@@ -83,10 +113,10 @@ var Benchmark = (function (_EventEmitter) {
 
                   case 4:
                   case 'end':
-                    return _context.stop();
+                    return _context2.stop();
                 }
               }
-            }, _callee, this);
+            }, _callee2, this);
           })).catch(reject);
         });
       };
@@ -100,38 +130,144 @@ var Benchmark = (function (_EventEmitter) {
 
       return {
         setup: function setup(fn) {
-          self.fn_cycle_setup.push(fn);
+          self.fn_cycle_setup.push(function () {
+            return new Promise(function (resolve, reject) {
+              co(regeneratorRuntime.mark(function _callee3() {
+                return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                  while (1) {
+                    switch (_context3.prev = _context3.next) {
+                      case 0:
+                        fn(self.context, self.options, function (err) {
+                          if (err) return reject(err);
+                          resolve();
+                        });
+
+                      case 1:
+                      case 'end':
+                        return _context3.stop();
+                    }
+                  }
+                }, _callee3, this);
+              })).catch(reject);
+            });
+          });
+
           return self;
         },
         teardown: function teardown(fn) {
-          self.fn_cycle_teardown.push(fn);
+          self.fn_cycle_teardown.push(function () {
+            return new Promise(function (resolve, reject) {
+              co(regeneratorRuntime.mark(function _callee4() {
+                return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                  while (1) {
+                    switch (_context4.prev = _context4.next) {
+                      case 0:
+                        fn(self.context, self.options, function (err) {
+                          if (err) return reject(err);
+                          resolve();
+                        });
+
+                      case 1:
+                      case 'end':
+                        return _context4.stop();
+                    }
+                  }
+                }, _callee4, this);
+              })).catch(reject);
+            });
+          });
+
           return self;
         }
       };
+    }
+  }, {
+    key: 'iteration',
+    value: function iteration() {
+      var self = this;
+
+      return {
+        setup: function setup(fn) {
+          self.fn_iteration_setup.push(function () {
+            return new Promise(function (resolve, reject) {
+              co(regeneratorRuntime.mark(function _callee5() {
+                return regeneratorRuntime.wrap(function _callee5$(_context5) {
+                  while (1) {
+                    switch (_context5.prev = _context5.next) {
+                      case 0:
+                        fn(self.context, self.options, function (err) {
+                          if (err) return reject(err);
+                          resolve();
+                        });
+
+                      case 1:
+                      case 'end':
+                        return _context5.stop();
+                    }
+                  }
+                }, _callee5, this);
+              })).catch(reject);
+            });
+          });
+
+          return self;
+        },
+        teardown: function teardown(fn) {
+          self.fn_iteration_teardown.push(function () {
+            return new Promise(function (resolve, reject) {
+              co(regeneratorRuntime.mark(function _callee6() {
+                return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                  while (1) {
+                    switch (_context6.prev = _context6.next) {
+                      case 0:
+                        fn(self.context, self.options, function (err) {
+                          if (err) return reject(err);
+                          resolve();
+                        });
+
+                      case 1:
+                      case 'end':
+                        return _context6.stop();
+                    }
+                  }
+                }, _callee6, this);
+              })).catch(reject);
+            });
+          });
+
+          return self;
+        }
+      };
+    }
+  }, {
+    key: 'addMetadata',
+    value: function addMetadata(metadata) {
+      this.metadata = Object.assign({}, this.metadata || {}, metadata);
+      return this;
     }
   }, {
     key: 'setup',
     value: function setup(fn) {
       var self = this;
 
-      this.fn_start_setup.push(function () {
+      this.fn_start_setup.push(function (options) {
         return new Promise(function (resolve, reject) {
-          co(regeneratorRuntime.mark(function _callee2() {
-            return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          co(regeneratorRuntime.mark(function _callee7() {
+            return regeneratorRuntime.wrap(function _callee7$(_context7) {
               while (1) {
-                switch (_context2.prev = _context2.next) {
+                switch (_context7.prev = _context7.next) {
                   case 0:
-                    fn(self.context, self.options, function (err) {
+                    fn(self.context, options, function (err) {
                       if (err) return reject(err);
                       resolve();
                     });
 
                   case 1:
                   case 'end':
-                    return _context2.stop();
+                    return _context7.stop();
                 }
               }
-            }, _callee2, this);
+            }, _callee7, this);
           })).catch(reject);
         });
       });
@@ -145,10 +281,10 @@ var Benchmark = (function (_EventEmitter) {
 
       this.fn_end_teardown.push(function () {
         return new Promise(function (resolve, reject) {
-          co(regeneratorRuntime.mark(function _callee3() {
-            return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          co(regeneratorRuntime.mark(function _callee8() {
+            return regeneratorRuntime.wrap(function _callee8$(_context8) {
               while (1) {
-                switch (_context3.prev = _context3.next) {
+                switch (_context8.prev = _context8.next) {
                   case 0:
                     fn(self.context, self.stats, self.options, function (err) {
                       if (err) return reject(err);
@@ -157,10 +293,10 @@ var Benchmark = (function (_EventEmitter) {
 
                   case 1:
                   case 'end':
-                    return _context3.stop();
+                    return _context8.stop();
                 }
               }
-            }, _callee3, this);
+            }, _callee8, this);
           })).catch(reject);
         });
       });
@@ -171,7 +307,8 @@ var Benchmark = (function (_EventEmitter) {
     key: 'execute',
     value: function execute(context, options) {
       var self = this;
-      if (!this.fn) throw new Error('no benchmark function set');
+      // We need either the normal function or custom override function to be defined
+      if (!this.fn && !this.fn_custom) throw new Error('no benchmark function set');
 
       // Ensure we don't have null pointers
       context = context || {};
@@ -180,25 +317,19 @@ var Benchmark = (function (_EventEmitter) {
       // Merge the options together
       var finalOptions = Object.assign({}, options, self.options);
 
-      // Unpack any options
-      var warmup = finalOptions.warmup || 100;
-      var cycles = finalOptions.cycles || 100;
-      var iterations = finalOptions.iterations || 1000;
-      var isAsync = typeof finalOptions.async == 'boolean' ? finalOptions.async : true;
-
       // Create a new context for the benchmark
       this.context = context ? Object.assign({}, context) : {};
 
       // Return execution promise for the benchmark
       return new Promise(function (resolve, reject) {
-        co(regeneratorRuntime.mark(function _callee4() {
-          var i, j;
-          return regeneratorRuntime.wrap(function _callee4$(_context4) {
+        co(regeneratorRuntime.mark(function _callee9() {
+          var i, warmup, cycles, iterations, isAsync, j, k;
+          return regeneratorRuntime.wrap(function _callee9$(_context9) {
             while (1) {
-              switch (_context4.prev = _context4.next) {
+              switch (_context9.prev = _context9.next) {
                 case 0:
                   if (!(self.fn_start_setup.length > 0)) {
-                    _context4.next = 8;
+                    _context9.next = 8;
                     break;
                   }
 
@@ -206,21 +337,28 @@ var Benchmark = (function (_EventEmitter) {
 
                 case 2:
                   if (!(i < self.fn_start_setup.length)) {
-                    _context4.next = 8;
+                    _context9.next = 8;
                     break;
                   }
 
-                  _context4.next = 5;
-                  return self.fn_start_setup[i]();
+                  _context9.next = 5;
+                  return self.fn_start_setup[i](finalOptions);
 
                 case 5:
                   i++;
-                  _context4.next = 2;
+                  _context9.next = 2;
                   break;
 
                 case 8:
 
+                  // Unpack any options
+                  warmup = finalOptions.warmup || 100;
+                  cycles = finalOptions.cycles || 100;
+                  iterations = finalOptions.iterations || 1000;
+                  isAsync = typeof finalOptions.async == 'boolean' ? finalOptions.async : true;
+
                   // Emit setup
+
                   self.emit('setup', self);
 
                   //
@@ -228,137 +366,199 @@ var Benchmark = (function (_EventEmitter) {
                   //
                   // Do we need to perform some warm up iterations
 
-                  if (!(warmup > 0)) {
-                    _context4.next = 34;
+                  if (!(warmup > 0 && self.fn)) {
+                    _context9.next = 38;
                     break;
                   }
 
                   if (!(self.fn_cycle_setup.length > 0)) {
-                    _context4.next = 18;
+                    _context9.next = 22;
                     break;
                   }
 
                   i = 0;
 
-                case 12:
+                case 16:
                   if (!(i < self.fn_cycle_setup.length)) {
-                    _context4.next = 18;
+                    _context9.next = 22;
                     break;
                   }
 
-                  _context4.next = 15;
+                  _context9.next = 19;
                   return self.fn_cycle_setup[i]();
 
-                case 15:
-                  i++;
-                  _context4.next = 12;
-                  break;
-
-                case 18:
-                  i = 0;
-
                 case 19:
-                  if (!(i < warmup)) {
-                    _context4.next = 25;
-                    break;
-                  }
-
-                  _context4.next = 22;
-                  return self.fn(isAsync);
+                  i++;
+                  _context9.next = 16;
+                  break;
 
                 case 22:
+                  i = 0;
+
+                case 23:
+                  if (!(i < warmup)) {
+                    _context9.next = 29;
+                    break;
+                  }
+
+                  _context9.next = 26;
+                  return self.fn(isAsync);
+
+                case 26:
                   i++;
-                  _context4.next = 19;
+                  _context9.next = 23;
                   break;
 
-                case 25:
+                case 29:
                   if (!(self.fn_cycle_teardown.length > 0)) {
-                    _context4.next = 33;
+                    _context9.next = 37;
                     break;
                   }
 
                   i = 0;
 
-                case 27:
+                case 31:
                   if (!(i < self.fn_cycle_teardown.length)) {
-                    _context4.next = 33;
+                    _context9.next = 37;
                     break;
                   }
 
-                  _context4.next = 30;
+                  _context9.next = 34;
                   return self.fn_cycle_teardown[i]();
 
-                case 30:
+                case 34:
                   i++;
-                  _context4.next = 27;
+                  _context9.next = 31;
                   break;
 
-                case 33:
+                case 37:
 
                   // Reset all stats
                   self.stats = [];
 
-                case 34:
+                case 38:
                   i = 0;
 
-                case 35:
+                case 39:
                   if (!(i < cycles)) {
-                    _context4.next = 70;
+                    _context9.next = 95;
                     break;
                   }
 
                   if (!(self.fn_cycle_setup.length > 0)) {
-                    _context4.next = 44;
+                    _context9.next = 48;
                     break;
                   }
 
                   j = 0;
 
-                case 38:
+                case 42:
                   if (!(j < self.fn_cycle_setup.length)) {
-                    _context4.next = 44;
+                    _context9.next = 48;
                     break;
                   }
 
-                  _context4.next = 41;
+                  _context9.next = 45;
                   return self.fn_cycle_setup[j]();
 
-                case 41:
+                case 45:
                   j++;
-                  _context4.next = 38;
+                  _context9.next = 42;
                   break;
 
-                case 44:
+                case 48:
 
                   // Current stats object
                   self.currentStats = new Stats();
                   self.currentStats.start();
 
-                  // Execute all the iterations
-                  j = 0;
+                  // We have a custom execution
 
-                case 47:
-                  if (!(j < iterations)) {
-                    _context4.next = 56;
+                  if (!self.fn_custom) {
+                    _context9.next = 55;
                     break;
                   }
 
+                  _context9.next = 53;
+                  return self.fn_custom(self.context, self.currentStats, finalOptions);
+
+                case 53:
+                  _context9.next = 81;
+                  break;
+
+                case 55:
+                  j = 0;
+
+                case 56:
+                  if (!(j < iterations)) {
+                    _context9.next = 81;
+                    break;
+                  }
+
+                  if (!(self.fn_iteration_setup.length > 0)) {
+                    _context9.next = 65;
+                    break;
+                  }
+
+                  k = 0;
+
+                case 59:
+                  if (!(k < self.fn_iteration_setup.length)) {
+                    _context9.next = 65;
+                    break;
+                  }
+
+                  _context9.next = 62;
+                  return self.fn_iteration_setup[k]();
+
+                case 62:
+                  k++;
+                  _context9.next = 59;
+                  break;
+
+                case 65:
+
                   self.currentStats.startIteration();
-                  _context4.next = 51;
+                  _context9.next = 68;
                   return self.fn(isAsync);
 
-                case 51:
+                case 68:
                   self.currentStats.endIteration();
+
+                  // Perform the iteration teardown if we have one
+
+                  if (!(self.fn_iteration_teardown.length > 0)) {
+                    _context9.next = 77;
+                    break;
+                  }
+
+                  k = 0;
+
+                case 71:
+                  if (!(k < self.fn_iteration_teardown.length)) {
+                    _context9.next = 77;
+                    break;
+                  }
+
+                  _context9.next = 74;
+                  return self.fn_iteration_teardown[k]();
+
+                case 74:
+                  k++;
+                  _context9.next = 71;
+                  break;
+
+                case 77:
 
                   // Finished iteration
                   self.emit('iteration', i, j, self);
 
-                case 53:
+                case 78:
                   j++;
-                  _context4.next = 47;
+                  _context9.next = 56;
                   break;
 
-                case 56:
+                case 81:
 
                   // Push the stats to the list of statistics objects for this benchmark
                   self.currentStats.end();
@@ -367,59 +567,59 @@ var Benchmark = (function (_EventEmitter) {
                   // Perform the cycle teardown if we have one
 
                   if (!(self.fn_cycle_teardown.length > 0)) {
-                    _context4.next = 66;
+                    _context9.next = 91;
                     break;
                   }
 
                   j = 0;
 
-                case 60:
+                case 85:
                   if (!(j < self.fn_cycle_teardown.length)) {
-                    _context4.next = 66;
+                    _context9.next = 91;
                     break;
                   }
 
-                  _context4.next = 63;
+                  _context9.next = 88;
                   return self.fn_cycle_teardown[j]();
 
-                case 63:
+                case 88:
                   j++;
-                  _context4.next = 60;
+                  _context9.next = 85;
                   break;
 
-                case 66:
+                case 91:
 
                   // Emit the cycle
                   self.emit('cycle', i, self);
 
-                case 67:
+                case 92:
                   i++;
-                  _context4.next = 35;
+                  _context9.next = 39;
                   break;
 
-                case 70:
+                case 95:
                   if (!(self.fn_end_teardown.length > 0)) {
-                    _context4.next = 78;
+                    _context9.next = 103;
                     break;
                   }
 
                   i = 0;
 
-                case 72:
+                case 97:
                   if (!(i < self.fn_end_teardown.length)) {
-                    _context4.next = 78;
+                    _context9.next = 103;
                     break;
                   }
 
-                  _context4.next = 75;
+                  _context9.next = 100;
                   return self.fn_end_teardown[i]();
 
-                case 75:
+                case 100:
                   i++;
-                  _context4.next = 72;
+                  _context9.next = 97;
                   break;
 
-                case 78:
+                case 103:
 
                   // Emit execute event
                   self.emit('teardown', self);
@@ -427,12 +627,12 @@ var Benchmark = (function (_EventEmitter) {
                   // Resolve the benchmark execution
                   resolve();
 
-                case 80:
+                case 105:
                 case 'end':
-                  return _context4.stop();
+                  return _context9.stop();
               }
             }
-          }, _callee4, this);
+          }, _callee9, this);
         })).catch(reject);
       });
     }

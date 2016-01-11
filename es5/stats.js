@@ -6,6 +6,41 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var S = require('fast-stats').Stats;
 
+var ParallelStats = (function () {
+  function ParallelStats(parent) {
+    _classCallCheck(this, ParallelStats);
+
+    this.parent = parent;
+    this._start = process.hrtime();
+  }
+
+  _createClass(ParallelStats, [{
+    key: "end",
+    value: function end() {
+      this.parent.timings.push(process.hrtime(this._start));
+    }
+  }]);
+
+  return ParallelStats;
+})();
+
+var TimeMeasure = (function () {
+  function TimeMeasure() {
+    _classCallCheck(this, TimeMeasure);
+
+    this._start = process.hrtime();
+  }
+
+  _createClass(TimeMeasure, [{
+    key: "end",
+    value: function end() {
+      return process.hrtime(this._start);
+    }
+  }]);
+
+  return TimeMeasure;
+})();
+
 var Stats = (function () {
   function Stats() {
     _classCallCheck(this, Stats);
@@ -42,6 +77,9 @@ var Stats = (function () {
     value: function duration() {
       return (this.totalDuration[0] * 1e9 + this.totalDuration[1]) / 1000;
     }
+
+    // Simple iteration measurement
+
   }, {
     key: "startIteration",
     value: function startIteration() {
@@ -51,6 +89,22 @@ var Stats = (function () {
     key: "endIteration",
     value: function endIteration() {
       this.timings.push(process.hrtime(this.startIterationHrTime));
+    }
+
+    // Start multiple parallel measurements
+
+  }, {
+    key: "startParallelIteration",
+    value: function startParallelIteration() {
+      return new ParallelStats(this);
+    }
+
+    // Just return a timing object
+
+  }, {
+    key: "timer",
+    value: function timer() {
+      return new TimeMeasure();
     }
   }, {
     key: "percentile",
